@@ -42,4 +42,11 @@
      MOV 2BH, #'1' ; '1' (índice 11)
 
      SJMP $ ; Loop infinito temporário
+     
+     delay:
+         MOV R7, #15 ; Define o valor inicial do registrador R7 como 15 (ajustar para delay desejado)
+     delay_loop:
+         DJNZ R7, delay_loop ; Decrementa R7 e repete até R7 ser zero
+         RET ; Retorna da sub-rotina
+
      END
