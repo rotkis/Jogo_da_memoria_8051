@@ -40,101 +40,109 @@
      MOV 29H, #'3' ; '3' (índice 9)
      MOV 2AH, #'2' ; '2' (índice 10)
      MOV 2BH, #'1' ; '1' (índice 11)
+      
+     leituraTeclado:
+         MOV R0, #0      ; Inicializa o registrador R0 com 0 (código da tecla)
+         MOV P0, #0FFh   ; Define todos os pinos de P0 como entrada (pull-ups internos)
+         ; Varre linha 0
+         CLR P0.0        ; Ativa linha 0 (coloca em nível baixo)
+         CALL colScan    ; Verifica se uma tecla foi pressionada nas colunas
+         JB F0, finish   ; Se uma tecla foi pressionada (F0=1), salta para finish
+
+         ; Varre linha 1
+         SETB P0.0       ; Desativa linha 0
+         CLR P0.1        ; Ativa linha 1
+         ; (Nota: O código original não ajusta R0 aqui, leva a códigos 0-2 apenas)
+         CALL colScan
+         JB F0, finish
+
+         ; Varre linha 2
+         SETB P0.1       ; Desativa linha 1
+         CLR P0.2        ; Ativa linha 2
+         ; (Nota: O código original não ajusta R0 aqui)
+         CALL colScan
+         JB F0, finish
+
+         ; Varre linha 3
+         SETB P0.2       ; Desativa linha 2
+         CLR P0.3        ; Ativa linha 3
+         ; (Nota: O código original não ajusta R0 aqui)
+         CALL colScan
+         JB F0, finish
+
+     finish:
+         ; (Nota: Sem debounce no código original explícito aqui, pode estar implícito no fluxo)
+         RET ; Retorna da sub-rotina
+
+     colScan: ; Verifica colunas P0.4, P0.5, P0.6
+         JNB P0.4, gotKey ; Se o pino P0.4 estiver baixo (tecla pressionada), salta para gotKey
+         INC R0           ; Incrementa o código da tecla (se não foi P0.4)
+         JNB P0.5, gotKey ; Se P0.5 estiver baixo, salta para gotKey
+         INC R0           ; Incrementa (se não foi P0.5)
+         JNB P0.6, gotKey ; Se P0.6 estiver baixo, salta para gotKey
+         INC R0           ; Incrementa (se não foi P0.6) - R0 fica 3 se nenhuma tecla nesta linha
+         RET              ; Retorna se nenhuma tecla pressionada na linha ativa
+
+     gotKey:
+         SETB F0          ; Define a flag F0 como alta, indicando que uma tecla foi pressionada
+         RET              ; Retorna da sub-rotina
 
 
      lcd_init:
-         CLR RS          ; Modo Comando
-         ; Inicialização em 4 bits (sequência específica)
-         ; Envia 0010 (Function Set - DL=0 -> 4-bit) - Primeiro Nibble
-         CLR P1.7        ; 0
-         CLR P1.6        ; 0
-         SETB P1.5       ; 1
-         CLR P1.4        ; 0
-         SETB EN
-         CLR EN
-         CALL delay      ; Delay necessário
-
-         ; Repete o comando para garantir
-         SETB EN
-         CLR EN
-         CALL delay
-
-         ; Envia 0010 (Function Set - DL=0 -> 4-bit) - Segundo Nibble (mesmo valor, mas agora o LCD está em 4 bits)
-         SETB EN
-         CLR EN
-         CALL delay
-
-         ; Agora envia comandos completos em dois nibbles
-         ; Function Set: DL=0 (4-bit), N=1 (2 linhas), F=0 (5x8 dots) -> Comando 0x28
-         ; Primeiro Nibble (0010)
-         CLR P1.7        ; 0
-         CLR P1.6        ; 0
-         SETB P1.5       ; 1
-         CLR P1.4        ; 0
-         SETB EN
-         CLR EN
-         ; Segundo Nibble (1000)
-         SETB P1.7       ; 1
-         CLR P1.6        ; 0
-         CLR P1.5        ; 0
-         CLR P1.4        ; 0
-         SETB EN
-         CLR EN
-         CALL delay
-
-         ; Display ON/OFF Control: D=1 (Display ON), C=0 (Cursor OFF), B=0 (Blink OFF) -> Comando 0x0C
-         ; Primeiro Nibble (0000)
-         CLR P1.7
-         CLR P1.6
-         CLR P1.5
-         CLR P1.4
-         SETB EN
-         CLR EN
-         ; Segundo Nibble (1100)
-         SETB P1.7       ; 1
-         SETB P1.6       ; 1
-         CLR P1.5        ; 0
-         CLR P1.4        ; 0
-         SETB EN
-         CLR EN
-         CALL delay
-
-         ; Clear Display -> Comando 0x01
-         ; Primeiro Nibble (0000)
-         CLR P1.7
-         CLR P1.6
-         CLR P1.5
-         CLR P1.4
-         SETB EN
-         CLR EN
-         ; Segundo Nibble (0001)
-         CLR P1.7        ; 0
-         CLR P1.6        ; 0
-         CLR P1.5        ; 0
-         SETB P1.4       ; 1
-         SETB EN
-         CLR EN
-         CALL delay      ; Clear Display exige um delay maior
-         CALL delay
-
-         ; Entry Mode Set: I/D=1 (Increment cursor), S=0 (No shift) -> Comando 0x06
-         ; Primeiro Nibble (0000)
-         CLR P1.7
-         CLR P1.6
-         CLR P1.5
-         CLR P1.4
-         SETB EN
-         CLR EN
-         ; Segundo Nibble (0110)
-         CLR P1.7        ; 0
-         SETB P1.6       ; 1
-         SETB P1.5       ; 1
-         CLR P1.4        ; 0
-         SETB EN
-         CLR EN
-         CALL delay
-         RET
-
+       
+         CLR RS		; Define o pino RS como baixo
+ 	       CLR P1.7	; Define o pino P1.7 como baixo
+         CLR P1.6		; Define o pino P1.6 como baixo
+	       SETB P1.5		; Define o pino P1.5 como alto
+	       CLR P1.4	; Define o pino P1.4 como baixo
+      	
+	       SETB EN	; Define o pino EN como alto
+ 	       CLR EN		; Define o pino EN como baixo
+ 	       CALL delay		; Espera um tempo
+       
+ 	       SETB EN		; Define o pino EN como alto
+ 	       CLR EN	; Define o pino EN como baixo
+      	
+ 	       SETB P1.7 ; Define o pino P1.7 como alto
+      	
+ 	       SETB EN	; Define o pino EN como alto
+ 	       CLR EN		; Define o pino EN como baixo
+ 	       CALL delay		; Espera um tempo
+       
+ 	       CLR P1.7		; Define o pino P1.7 como baixo
+ 	       CLR P1.6		; Define o pino P1.6 como baixo
+ 	       CLR P1.5		; Define o pino P1.5 como baixo
+ 	       CLR P1.4		; Define o pino P1.4 como baixo
+       
+ 	       SETB EN	; Define o pino EN como alto
+ 	       CLR EN		; Define o pino EN como baixo
+       
+ 	       SETB P1.6	; Define o pino P1.6 como alto
+ 	       SETB P1.5	; Define o pino P1.5 como alto
+       
+ 	       SETB EN	; Define o pino EN como alto
+ 	       CLR EN		; Define o pino EN como baixo
+       
+ 	       CALL delay	; Espera um tempo
+       
+ 	       CLR P1.7	; Define o pino P1.7 como baixo
+ 	       CLR P1.6		; Define o pino P1.6 como baixo
+ 	       CLR P1.5		; Define o pino P1.5 como baixo
+ 	       CLR P1.4	; Define o pino P1.4 como baixo
+       
+ 	       SETB EN	; Define o pino EN como alto
+	       CLR EN	; Define o pino EN como baixo
+       
+	       SETB P1.7	; Define o pino P1.7 como alto
+	       SETB P1.6		; Define o pino P1.6 como alto
+	       SETB P1.5		; Define o pino P1.5 como alto
+	       SETB P1.4		; Define o pino P1.4 como alto
+       
+	       SETB EN		; Define o pino EN como alto
+	       CLR EN		; Define o pino EN como baixo
+       
+	       CALL delay	; Espera um tempo
+	       RET ; Retorna da sub-rotina
 
      sendCharacter: ; Envia o caractere no Acumulador (A)
          SETB RS         ; Modo Dado (enviar caractere)
