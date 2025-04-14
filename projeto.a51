@@ -41,7 +41,99 @@
      MOV 2AH, #'2' ; '2' (índice 10)
      MOV 2BH, #'1' ; '1' (índice 11)
 
-     SJMP $ ; Loop infinito temporário
+
+     lcd_init:
+         CLR RS          ; Modo Comando
+         ; Inicialização em 4 bits (sequência específica)
+         ; Envia 0010 (Function Set - DL=0 -> 4-bit) - Primeiro Nibble
+         CLR P1.7        ; 0
+         CLR P1.6        ; 0
+         SETB P1.5       ; 1
+         CLR P1.4        ; 0
+         SETB EN
+         CLR EN
+         CALL delay      ; Delay necessário
+
+         ; Repete o comando para garantir
+         SETB EN
+         CLR EN
+         CALL delay
+
+         ; Envia 0010 (Function Set - DL=0 -> 4-bit) - Segundo Nibble (mesmo valor, mas agora o LCD está em 4 bits)
+         SETB EN
+         CLR EN
+         CALL delay
+
+         ; Agora envia comandos completos em dois nibbles
+         ; Function Set: DL=0 (4-bit), N=1 (2 linhas), F=0 (5x8 dots) -> Comando 0x28
+         ; Primeiro Nibble (0010)
+         CLR P1.7        ; 0
+         CLR P1.6        ; 0
+         SETB P1.5       ; 1
+         CLR P1.4        ; 0
+         SETB EN
+         CLR EN
+         ; Segundo Nibble (1000)
+         SETB P1.7       ; 1
+         CLR P1.6        ; 0
+         CLR P1.5        ; 0
+         CLR P1.4        ; 0
+         SETB EN
+         CLR EN
+         CALL delay
+
+         ; Display ON/OFF Control: D=1 (Display ON), C=0 (Cursor OFF), B=0 (Blink OFF) -> Comando 0x0C
+         ; Primeiro Nibble (0000)
+         CLR P1.7
+         CLR P1.6
+         CLR P1.5
+         CLR P1.4
+         SETB EN
+         CLR EN
+         ; Segundo Nibble (1100)
+         SETB P1.7       ; 1
+         SETB P1.6       ; 1
+         CLR P1.5        ; 0
+         CLR P1.4        ; 0
+         SETB EN
+         CLR EN
+         CALL delay
+
+         ; Clear Display -> Comando 0x01
+         ; Primeiro Nibble (0000)
+         CLR P1.7
+         CLR P1.6
+         CLR P1.5
+         CLR P1.4
+         SETB EN
+         CLR EN
+         ; Segundo Nibble (0001)
+         CLR P1.7        ; 0
+         CLR P1.6        ; 0
+         CLR P1.5        ; 0
+         SETB P1.4       ; 1
+         SETB EN
+         CLR EN
+         CALL delay      ; Clear Display exige um delay maior
+         CALL delay
+
+         ; Entry Mode Set: I/D=1 (Increment cursor), S=0 (No shift) -> Comando 0x06
+         ; Primeiro Nibble (0000)
+         CLR P1.7
+         CLR P1.6
+         CLR P1.5
+         CLR P1.4
+         SETB EN
+         CLR EN
+         ; Segundo Nibble (0110)
+         CLR P1.7        ; 0
+         SETB P1.6       ; 1
+         SETB P1.5       ; 1
+         CLR P1.4        ; 0
+         SETB EN
+         CLR EN
+         CALL delay
+         RET
      
      delay:
          MOV R7, #15 ; Define o valor inicial do registrador R7 como 15 (ajustar para delay desejado)
