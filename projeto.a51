@@ -134,6 +134,84 @@
          CLR EN
          CALL delay
          RET
+
+
+     sendCharacter: ; Envia o caractere no Acumulador (A)
+         SETB RS         ; Modo Dado (enviar caractere)
+         MOV R2, A       ; Salva A para enviar o segundo nibble
+         ; Envia High Nibble (bits 7-4)
+         SWAP A          ; Troca nibbles (bits 3-0 vão para 7-4, 7-4 vão para 3-0)
+         ANL A, #0F0h    ; Isola High Nibble original (agora nos bits 7-4)
+         MOV P1, A       ; Envia para P1 (assumindo P1.7-P1.4 conectados a D7-D4 do LCD)
+         ; Pulso no Enable
+         SETB EN
+         CLR EN
+         ; Envia Low Nibble (bits 3-0)
+         MOV A, R2       ; Recupera A original
+         ANL A, #0Fh     ; Isola Low Nibble
+         MOV P1, A       ; Envia para P1 (assumindo P1.3-P1.0 livres ou não conectados a D3-D0)
+                         ; CORREÇÃO: Precisa mapear para P1.7-P1.4
+         SWAP A          ; Move bits 3-0 para 7-4 para alinhar com P1.7-P1.4
+         MOV P1, A
+         ; Pulso no Enable
+         SETB EN
+         CLR EN
+         CALL delay
+         RET
+
+     posicionaCursor: ; Envia comando para posicionar cursor (endereço em A)
+         CLR RS          ; Modo Comando
+         MOV R2, A       ; Salva A
+         ; Envia High Nibble
+         SWAP A
+         ANL A, #0F0h
+         MOV P1, A
+         SETB EN
+         CLR EN
+         ; Envia Low Nibble
+         MOV A, R2
+         ANL A, #0Fh
+         SWAP A          ; Alinha com P1.7-P1.4
+         MOV P1, A
+         SETB EN
+         CLR EN
+         CALL delay
+         RET
+
+     ; Adiciona outras funções do LCD se necessário (clearDisplay, retornaCursor)
+     clearDisplay:
+         MOV A, #01h     ; Comando para limpar display
+         ACALL enviaComandoLCD ; Usa uma rotina auxiliar (ou duplica lógica de posicionaCursor)
+         CALL delay      ; Delay extra para clear
+         CALL delay
+         RET
+
+     retornaCursor:
+         MOV A, #02h     ; Comando para retornar cursor ao início
+         ACALL enviaComandoLCD ; Usa uma rotina auxiliar
+         CALL delay
+         RET
+
+     ; Rotina auxiliar para enviar comando (similar a posicionaCursor)
+     enviaComandoLCD:
+         CLR RS          ; Modo Comando
+         MOV R2, A       ; Salva A
+         ; Envia High Nibble
+         SWAP A
+         ANL A, #0F0h
+         MOV P1, A
+         SETB EN
+         CLR EN
+         ; Envia Low Nibble
+         MOV A, R2
+         ANL A, #0Fh
+         SWAP A          ; Alinha com P1.7-P1.4
+         MOV P1, A
+         SETB EN
+         CLR EN
+         CALL delay
+         RET
+
      
      delay:
          MOV R7, #15 ; Define o valor inicial do registrador R7 como 15 (ajustar para delay desejado)
