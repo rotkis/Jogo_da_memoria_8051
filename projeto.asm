@@ -10,6 +10,7 @@
  	LJMP INICIO    ; Inicia a execução do programa em INICIO
        
       org 0030h
+      SCORE equ 38H  ; Define o endereço 38H para armazenar o score
       INICIO:
       	; Define os valores ASCII para os dígitos da sequência
       	; 0 = 41h
@@ -48,6 +49,7 @@
       	
  	MOV R5,#3 ; Define o número de tentativas de sequência como 3
 	acall lcd_init; Inicializa o LCD
+  MOV SCORE, #0 ; Inicializa o score com 0
       MAIN:
 	MOV R1, #41H ; Define o endereço de memória para armazenar a sequência digitada
  	MOV R3, #7 ; Define o número de dígitos da sequência como 7
@@ -118,7 +120,120 @@
  	ACALL sendCharacter	; Imprime o caractere ' '
 	MOV A, #' '
  	ACALL sendCharacter	; Imprime o caractere ' '
-  mov A, #00h
+  MOV A, #40H
+	ACALL posicionaCursor ; Posiciona o cursor na segunda linha da tela
+ 	MOV A, #'P'
+ 	ACALL sendCharacter ; Imprime o caractere 'P'
+ 	MOV A, #'R'
+ 	ACALL sendCharacter	; Imprime o caractere 'R'
+	MOV A, #'E'
+ 	ACALL sendCharacter ; Imprime o caractere 'E'
+	MOV A, #'S'
+	ACALL sendCharacter ; Imprime o caractere 'S'
+ 	MOV A, #'S'
+	ACALL sendCharacter		; Imprime o caractere 'S'
+	MOV A, #'I'
+ 	ACALL sendCharacter	; Imprime o caractere 'I'
+	MOV A, #'O'
+	ACALL sendCharacter ; Imprime o caractere 'O'
+ 	MOV A, #'N'		
+ 	ACALL sendCharacter	; Imprime o caractere 'N'
+ 	MOV A, #'E'
+ 	ACALL sendCharacter ; Imprime o caractere 'E'
+ 	MOV A, #' '
+	ACALL sendCharacter ; Imprime o caractere ' '
+ 	MOV A, #'0'
+	ACALL sendCharacter ; Imprime o caractere '0'
+ 	MOV A, #' '
+ 	ACALL sendCharacter	; Imprime o caractere ' '
+	MOV A, #' '
+ 	ACALL sendCharacter	; Imprime o caractere ' '
+	MOV A, #' '
+ 	ACALL sendCharacter	; Imprime o caractere ' '
+	MOV A, #' '
+ 	ACALL sendCharacter	; Imprime o caractere ' '
+	MOV A, #' '
+ 	ACALL sendCharacter	; Imprime o caractere ' '
+  ACALL leitura0
+  ACALL MAIN
+
+leitura0:
+    ACALL leituraTeclado
+    MOV A, R0
+    CJNE A, #01H, NAO_ZERO_LEITURA0
+    ACALL JOGO
+NAO_ZERO_LEITURA0:
+    LJMP MAIN
+
+JOGO:
+  ;; Imprime a mensagem "MEMORIZE A SEQUENCIA" na tela do LCD
+	mov A, #00h
+ 	ACALL posicionaCursor ; Posiciona o cursor no início da tela
+	MOV A, #'M'
+ 	ACALL sendCharacter ; Imprime o caractere 'M'
+ 	MOV A, #'E'
+ 	ACALL sendCharacter	; Imprime o caractere 'E'
+ 	MOV A, #'M'
+ 	ACALL sendCharacter ; Imprime o caractere 'M'
+ 	MOV A, #'O'
+ 	ACALL sendCharacter ; Imprime o caractere 'O'
+	MOV A, #'R'
+	ACALL sendCharacter ; Imprime o caractere 'R'
+	MOV A, #'I'
+	ACALL sendCharacter ; Imprime o caractere 'I'
+	MOV A, #'Z'
+	ACALL sendCharacter ; Imprime o caractere 'Z'
+	MOV A, #'E'
+	ACALL sendCharacter ; Imprime o caractere 'E'
+	MOV A, #' '
+	ACALL sendCharacter ; Imprime o caractere ' '
+	MOV A, #'A'
+	ACALL sendCharacter ; Imprime o caractere 'A'
+	MOV A, #' '
+	ACALL sendCharacter ; Imprime o caractere ' '
+	MOV A, #' '
+	ACALL sendCharacter ; Imprime o caractere ' '
+	MOV A, #' '
+	ACALL sendCharacter ; Imprime o caractere ' '
+	MOV A, #' '
+	ACALL sendCharacter ; Imprime o caractere ' '
+	MOV A, #' '
+	ACALL sendCharacter ; Imprime o caractere ' '
+	MOV A, #40H
+	ACALL posicionaCursor ; Posiciona o cursor na segunda linha da tela
+ 	MOV A, #'S'
+ 	ACALL sendCharacter ; Imprime o caractere 'S'
+ 	MOV A, #'E'
+ 	ACALL sendCharacter	; Imprime o caractere 'E'
+	MOV A, #'Q'
+ 	ACALL sendCharacter ; Imprime o caractere 'Q'
+	MOV A, #'U'
+	ACALL sendCharacter ; Imprime o caractere 'U'
+ 	MOV A, #'E'
+	ACALL sendCharacter		; Imprime o caractere 'E'
+	MOV A, #'N'
+ 	ACALL sendCharacter	; Imprime o caractere 'N'
+	MOV A, #'C'
+	ACALL sendCharacter ; Imprime o caractere 'C'
+ 	MOV A, #'I'		
+ 	ACALL sendCharacter	; Imprime o caractere 'I'
+ 	MOV A, #'A'
+ 	ACALL sendCharacter ; Imprime o caractere 'A'
+ 	MOV A, #' '
+	ACALL sendCharacter ; Imprime o caractere ' '
+ 	MOV A, #' '
+	ACALL sendCharacter ; Imprime o caractere ' '
+ 	MOV A, #' '
+ 	ACALL sendCharacter	; Imprime o caractere ' '
+	MOV A, #' '
+ 	ACALL sendCharacter	; Imprime o caractere ' '
+	MOV A, #' '
+ 	ACALL sendCharacter	; Imprime o caractere ' '
+	MOV A, #' '
+ 	ACALL sendCharacter	; Imprime o caractere ' '
+	MOV A, #' '
+ 	ACALL sendCharacter	; Imprime o caractere ' '
+	mov A, #00h
  	ACALL posicionaCursor ; Posiciona o cursor na terceira linha da tela
 	MOV A, #' '
  	ACALL sendCharacter ; Imprime o caractere ' '
@@ -261,7 +376,7 @@
  		CJNE A,B , DIFERENTE ; Compara os valores em A e B. Se forem diferentes, pula para DIFERENTE
 		INC R1 ; Incrementa o registrador R1 para apontar para o próximo dígito da sequência digitada
  		INC R0; Incrementa o registrador R0 para apontar para o próximo dígito da sequência correta
-      		
+    INC SCORE ; Incrementa a variável de score  		
 		DJNZ R4, COMPARACAO ; Decrementa o contador de dígitos e repete a comparação se necessário
 		SJMP CORRETO; Se a sequência estiver correta, pula para CORRETO
        
@@ -320,6 +435,7 @@
 		ACALL sendCharacter ; Imprime o caractere ' '
 		MOV A, #' '
 		ACALL sendCharacter ; Imprime o caractere ' '
+    ACALL exibeScore ; Exibe o score
 		SJMP FIM ; Finaliza a execução do programa
        
       		       
@@ -360,7 +476,7 @@
     	ACALL sendCharacter ; Imprime o caractere ' '
     	MOV A, #' '
     	ACALL sendCharacter ; Imprime o caractere ' '
-       	MOV A, #40h
+      MOV A, #40h
     	ACALL posicionaCursor ; Posiciona o cursor na segunda linha da tela
     	MOV A, #'I'
     	ACALL sendCharacter ; Imprime o caractere 'I'
@@ -537,7 +653,24 @@
 	CALL delay	; Espera um tempo
 	RET ; Retorna da sub-rotina
        
-       
+     
+exibeScore:
+     MOV A, #40H; Posiciona o cursor na segunda linha, perto do final
+     ACALL posicionaCursor
+
+     MOV A, SCORE ; Carrega o valor do score
+
+     MOV B, #10  ; Divisor para obter o dígito das dezenas
+     DIV AB      ; Divide A por 10. Quociente em A (dezenas), resto em B (unidades)
+
+     ADD A, #'0' ; Converte o dígito das dezenas para ASCII
+     ACALL sendCharacter
+
+     MOV A, B    ; Move o resto (unidades) para A
+     ADD A, #'0' ; Converte o dígito das unidades para ASCII
+     ACALL sendCharacter
+     RET
+
       sendCharacter:
  	SETB RS  	; Define o pino RS como alto
  	MOV C, ACC.7	; Move o bit 7 do acumulador para o registrador C
