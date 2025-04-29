@@ -35,7 +35,7 @@
        
  	MOV 20H, #'#' ; Define o caractere '#' para a tela do LCD
  	MOV 21H, #'0' ; Define o caractere '0' para a tela do LCD
- 	MOV 22H, #'*' ; Define o caractere '*' para a tela do LCD
+ 	MOV 22H, #'' ; Define o caractere '' para a tela do LCD
 	MOV 23H, #'9' ; Define o caractere '9' para a tela do LCD
  	MOV 24H, #'8' ; Define o caractere '8' para a tela do LCD
  	MOV 25H, #'7' ; Define o caractere '7' para a tela do LCD
@@ -142,8 +142,8 @@
  	ACALL sendCharacter ; Imprime o caractere 'E'
  	MOV A, #' '
 	ACALL sendCharacter ; Imprime o caractere ' '
- 	MOV A, #'0'
-	ACALL sendCharacter ; Imprime o caractere '0'
+ 	MOV A, #'1'
+	ACALL sendCharacter ; Imprime o caractere '1'
  	MOV A, #' '
  	ACALL sendCharacter	; Imprime o caractere ' '
 	MOV A, #' '
@@ -158,6 +158,7 @@
   ACALL MAIN
 
 leitura0:
+    MOV A,#0FFH
     ACALL leituraTeclado
     MOV A, R0
     CJNE A, #01H, NAO_ZERO_LEITURA0
@@ -348,38 +349,68 @@ JOGO:
        
        
       ROTINA:
-      	
- 	ACALL leituraTeclado ; Lê o valor do teclado
- 	JNB F0, ROTINA  ; Se uma tecla foi pressionada, repete a leitura
-      	
-	MOV A, #40h ; Define o valor inicial para o registrador A
- 	ADD A, R0 ; Soma o valor da tecla pressionada ao registrador A
- 	MOV R0, A ; Move o resultado para o registrador R0
-       
-	MOV @R1, A ; Armazena o dígito da sequência digitada no endereço de memória apontado por R1
- 	INC R1; Incrementa o registrador R1 para apontar para o próximo local de memória
-       
- 	MOV A, @R0 ; Move o valor do caractere correspondente à tecla pressionada para o registrador A
-      	    
+     MOV A, #0FFH
+     ACALL leituraTeclado ; Lê o valor do teclado
+     JNB F0, ROTINA  ; Se nenhuma tecla foi pressionada, repete a leitura
 
- 	CLR F0 ; Limpa a flag F0
- 	DJNZ R3, ROTINA ; Decrementa o número de dígitos a serem digitados e repete a rotina se necessário
-      	
- 	MOV R1, #41H; Define o endereço de memória para armazenar a sequência digitada
- 	MOV R0, #31H;  Define o endereço de memória para armazenar a sequência correta
- 	MOV R4, #7; Define o número de dígitos a serem comparados como 7
-       
-      	COMPARACAO:
-      		
- 		MOV A, @R0 ; Move o valor do dígito da sequência correta para o registrador A
-		MOV B, @R1 ; Move o valor do dígito da sequência digitada para o registrador B
- 		CJNE A,B , DIFERENTE ; Compara os valores em A e B. Se forem diferentes, pula para DIFERENTE
-		INC R1 ; Incrementa o registrador R1 para apontar para o próximo dígito da sequência digitada
- 		INC R0; Incrementa o registrador R0 para apontar para o próximo dígito da sequência correta
-    INC SCORE ; Incrementa a variável de score  		
-		DJNZ R4, COMPARACAO ; Decrementa o contador de dígitos e repete a comparação se necessário
-		SJMP CORRETO; Se a sequência estiver correta, pula para CORRETO
-       
+     MOV A, R0      ; O valor da tecla pressionada (0 a 15) está em R0
+
+     ; *** Exibe o valor da tecla pressionada no LCD ***
+     MOV B, A       ; Salva o valor de R0 em B para não perder
+     ANL A, #0F0H    ; Isola o nibble superior (para converter para ASCII)
+     SWAP A          ; Move o nibble superior para o inferior
+     ACALL converteDigitoASCII ; Converte para ASCII (0-9, A-F)
+     MOV P2, A       ; Temporariamente coloca no P2 para visualização (remova depois)
+     MOV A, #00H     ; Posiciona cursor na primeira linha, oitava coluna (ajuste se necessário)
+     ADD A, #07H
+     ACALL posicionaCursor
+     MOV A, P2       ; Recupera o valor ASCII
+     ACALL sendCharacter
+
+     MOV A, B       ; Recupera o valor da tecla pressionada
+     ANL A, #00FH    ; Isola o nibble inferior
+     ACALL converteDigitoASCII ; Converte para ASCII (0-9, A-F)
+     MOV P2, A       ; Temporariamente coloca no P2 para visualização (remova depois)
+     MOV A, #00H     ; Posiciona cursor na primeira linha, nona coluna (ajuste se necessário)
+     ADD A, #08H
+     ACALL posicionaCursor
+     MOV A, P2       ; Recupera o valor ASCII
+     ACALL sendCharacter
+     ; *** Fim da exibição de depuração ***
+
+     MOV A, #40h ; Define o valor inicial para o registrador A
+     ADD A, R0 ; Soma o valor da tecla pressionada ao registrador A
+     MOV R0, A ; Move o resultado para o registrador R0
+
+     MOV @R1, A ; Armazena o dígito da sequência digitada no endereço de memória apontado por R1
+     INC R1; Incrementa o registrador R1 para apontar para o próximo local de memória
+
+     MOV A, @R0 ; Move o valor do caractere correspondente à tecla pressionada para o registrador A
+
+     CLR F0 ; Limpa a flag F0
+     DJNZ R3, ROTINA ; Decrementa o número de dígitos a serem digitados e repete a rotina se necessário
+
+     MOV R1, #41H; Define o endereço de memória para armazenar a sequência digitada
+     MOV R0, #31H;  Define o endereço de memória para armazenar a sequência correta
+     MOV R4, #7; Define o número de dígitos a serem comparados como 7
+
+     COMPARACAO:
+         MOV A, @R0 ; Move o valor do dígito da sequência correta para o registrador A
+         MOV B, @R1 ; Move o valor do dígito da sequência digitada para o registrador B
+         CJNE A,B , DIFERENTE ; Compara os valores em A e B. Se forem diferentes, pula para DIFERENTE
+         INC R1 ; Incrementa o registrador R1 para apontar para o próximo dígito da sequência digitada
+         INC R0; Incrementa o registrador R0 para apontar para o próximo dígito da sequência correta
+         INC SCORE ; Incrementa a variável de score
+         DJNZ R4, COMPARACAO ; Decrementa o contador de dígitos e repete a comparação se necessário
+         SJMP CORRETO; Se a sequência estiver correta, pula para CORRETO       
+
+converteDigitoASCII:
+     CJNE A, #0AH, naoDigito
+     ADD A, #07H ; Ajusta para 'A'-'F'
+naoDigito:
+     ADD A, #30H ; Converte para '0'-'9'
+     RET
+
       CORRETO:
  		MOV P1, #0F0H ; Liga o LED verde
       		
@@ -551,52 +582,70 @@ JOGO:
     		ACALL sendCharacter ; Imprime o caractere ' '
     		MOV A, #' '
     		ACALL sendCharacter ; Imprime o caractere ' '
-   	 	MOV A, #' '
-   		ACALL sendCharacter ; Imprime o caractere ' '
-   		MOV A, #' '
-   		ACALL sendCharacter ; Imprime o caractere ' '
-   	 	MOV A, #' '
+        MOV A, #' '
+   		  ACALL sendCharacter ; Imprime o caractere ' '
+   		  MOV A, #' '
+   		  ACALL sendCharacter ; Imprime o caractere ' '
+        MOV A, #' '
     		ACALL sendCharacter ; Imprime o caractere ' '
+        ACALL exibeScore
 		sjmp $ ; Finaliza a execução do programa
     	       
       		       
       leituraTeclado:
- 	MOV R0, #0		; Inicializa o registrador R0 com 0
+ 	MOV R0, #01	; Inicializa o registrador R0 com 0
  	MOV P0, #0FFh	; Define todos os pinos de P0 como saídas
- 	CLR P0.0		; Desativa o pino P0.0
- 	CALL colScan	; Verifica se uma tecla foi pressionada nas colunas
+ 	SETB P0.0; Desativa o pino P0.0
+ 	CLR P0.3
+  CALL colScan	; Verifica se uma tecla foi pressionada nas colunas
  	JB F0, finish		; Se uma tecla foi pressionada, salta para finish
       					
- 	SETB P0.0		; Ativa o pino P0.0
- 	CLR P0.1			; Desativa o pino P0.1
+ 	SETB P0.3		; Ativa o pino P0.0
+ 	CLR P0.2			; Desativa o pino P0.1
  	CALL colScan		; Verifica se uma tecla foi pressionada nas colunas
  	JB F0, finish		; Se uma tecla foi pressionada, salta para finish
       							
-	SETB P0.1			; Ativa o pino P0.1
- 	CLR P0.2			; Desativa o pino P0.2
+	SETB P0.2			; Ativa o pino P0.1
+ 	CLR P0.1			; Desativa o pino P0.2
  	CALL colScan	; Verifica se uma tecla foi pressionada nas colunas
  	JB F0, finish	; Se uma tecla foi pressionada, salta para finish
       						
- 	SETB P0.2			; Ativa o pino P0.2
- 	CLR P0.3			; Desativa o pino P0.3
- 	CALL colScan		; Verifica se uma tecla foi pressionada nas colunas
+ 	SETB P0.1			; Ativa o pino P0.2
+ 	CLR P0.0			; Desativa o pino P0.3
+ 	CALL row0		; Verifica se uma tecla foi pressionada nas colunas
  	JB F0, finish		; Se uma tecla foi pressionada, salta para finish
       						
       finish:
  	RET ; Retorna da sub-rotina
        
       colScan:
- 	JNB P0.4, gotKey	; Se o pino P0.4 estiver baixo, salta para gotKey
+ 	JNB P0.6, gotKey	; Se o pino P0.4 estiver baixo, salta para gotKey
  	INC R0				; Incrementa o registrador R0
  	JNB P0.5, gotKey	; Se o pino P0.5 estiver baixo, salta para gotKey
  	INC R0				; Incrementa o registrador R0
- 	JNB P0.6, gotKey	; Se o pino P0.6 estiver baixo, salta para gotKey
+ 	JNB P0.4, gotKey	; Se o pino P0.6 estiver baixo, salta para gotKey
  	INC R0				; Incrementa o registrador R0
  	RET				; Retorna da sub-rotina
       gotKey:
+  MOV A, R0
  	SETB F0				; Define a flag F0 como alta, indicando que uma tecla foi pressionada
  	RET				; Retorna da sub-rotina
-       
+      
+zero:
+MOV A, #00H
+RET
+
+sejaB:
+MOV A, #0BH
+RET
+row0:
+JNB P0.6, gotKey ; if col2 is cleared - key found
+INC R0 ; otherwise move to next key
+JNB P0.5, zero ; if col1 is cleared - key found
+INC R0 ; otherwise move to next key
+JNB P0.4, sejaB ; if col0 is cleared - key found
+INC R0 ; otherwise move to next key
+
       lcd_init:
        
  	CLR RS		; Define o pino RS como baixo
@@ -655,8 +704,21 @@ JOGO:
        
      
 exibeScore:
-     MOV A, #40H; Posiciona o cursor na segunda linha, perto do final
-     ACALL posicionaCursor
+     MOV A, #40; Posiciona o cursor na segunda linha, um pouco antes do final
+
+     ; Exibe o rótulo "SCORE:"
+     MOV A, #'S'
+     ACALL sendCharacter
+     MOV A, #'C'
+     ACALL sendCharacter
+     MOV A, #'O'
+     ACALL sendCharacter
+     MOV A, #'R'
+     ACALL sendCharacter
+     MOV A, #'E'
+     ACALL sendCharacter 
+     MOV A, #' ' ; Adiciona um espaço após o rótulo
+     ACALL sendCharacter
 
      MOV A, SCORE ; Carrega o valor do score
 
