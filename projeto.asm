@@ -1,5 +1,5 @@
 ;-----------------------------------------------------------
-; Jogo da Memória 8051 (edSim51) - Parte 1
+; Jogo da Memória 8051 (edSim51)
 ; Descrição: Setup inicial, controle de LEDs e delay.
 ;-----------------------------------------------------------
 ; --- Mapeamento de Hardware (8051) ---
@@ -14,6 +14,8 @@
     SCORE equ 38H  ; Define o endereço 38H para armazenar o score
 
 INICIO:
+    MOV TMOD, #01h     ; Configura Timer 0 no modo 1 (16-bit)
+    SETB TR0
     ; Define os valores ASCII para os dígitos da sequência
     ; 0 = 41h
     ; 1 = 4Bh
@@ -26,13 +28,20 @@ INICIO:
     ; 8 = 44h
     ; 9 = 43h
 
- 	MOV 31H, #4     ; Primeiro dígito = 4
-    MOV 32H, #2     ; Segundo dígito = 2
-    MOV 33H, #1     ; Terceiro dígito = 1
-    MOV 34H, #3     ; Quarto dígito = 3
-    MOV 35H, #2     ; Quinto dígito = 2
-    MOV 36H, #4     ; Sexto dígito = 4
-    MOV 37H, #3     ; Sétimo dígito = 3
+    ACALL GERA_ALEATORIO
+ 	MOV 31H, A     ; Primeiro dígito = 4
+    ACALL GERA_ALEATORIO
+    MOV 32H, A     ; Segundo dígito = 2
+    ACALL GERA_ALEATORIO
+    MOV 33H, A
+    ACALL GERA_ALEATORIO
+    MOV 34H, A
+    ACALL GERA_ALEATORIO
+    MOV 35H, A     ; Quinto dígito = 2
+    ACALL GERA_ALEATORIO
+    MOV 36H, A     ; Sexto dígito = 4
+    ACALL GERA_ALEATORIO
+    MOV 37H, A     ; Sétimo dígito = 3
 
 
  	MOV 20H, #'#' ; Define o caractere '#' para a tela do LCD
@@ -161,16 +170,38 @@ MAIN:
     ACALL leitura0
     ACALL MAIN
 
+
+
 leitura0:
+    INC R7
+    ACALL GERA_ALEATORIO
+ 	MOV 31H, A
+    ACALL GERA_ALEATORIO
+    MOV 32H, A
+    ACALL GERA_ALEATORIO
+    MOV 33H, A
+    ACALL GERA_ALEATORIO
+    MOV 34H, A
+    ACALL GERA_ALEATORIO
+    MOV 35H, A
+    ACALL GERA_ALEATORIO
+    MOV 36H, A
+    ACALL GERA_ALEATORIO
+    MOV 37H, A
     MOV A,#0FFH
     ACALL leituraTeclado
     MOV A, R0
     CJNE A, #01H, NAO_ZERO_LEITURA0
     ACALL JOGO
 NAO_ZERO_LEITURA0:
-    LJMP MAIN
+    LJMP leitura0
 
 JOGO:
+    SETB P0.0
+    SETB P0.1
+    SETB P0.2
+    SETB P0.3
+    CLR F0
     ; Imprime a mensagem "MEMORIZE A SEQUENCIA" na tela do LCD
 	MOV A, #00h
  	ACALL posicionaCursor ; Posiciona o cursor no início da tela
@@ -302,44 +333,58 @@ JOGO:
  	ACALL sendCharacter	; Imprime o caractere ' '
 	mov A, #07h
  	ACALL posicionaCursor ; Posiciona o cursor na quinta linha da tela
-	MOV A, #'4'
+    MOV A, 31H
+	ADD A, #'0'
 	ACALL sendCharacter	; Imprime o caractere '4'
+    ACALL delay
 	MOV A, #' '
  	ACALL sendCharacter	; Imprime o caractere ' '
 	mov A, #07h
  	ACALL posicionaCursor ; Posiciona o cursor na sexta linha da tela
-	MOV A, #'2'
+	MOV A, 32H
+	ADD A, #'0'
 	ACALL sendCharacter	; Imprime o caractere '2'
+	ACALL delay
 	MOV A, #' '
  	ACALL sendCharacter	; Imprime o caractere ' '
 	mov A, #07h
  	ACALL posicionaCursor ; Posiciona o cursor na sétima linha da tela
-	MOV A, #'1'
+	MOV A, 33H
+	ADD A, #'0'
 	ACALL sendCharacter	; Imprime o caractere '1'
+	ACALL delay
 	MOV A, #' '
  	ACALL sendCharacter	; Imprime o caractere ' '
 	mov A, #07h
  	ACALL posicionaCursor ; Posiciona o cursor na oitava linha da tela
-	MOV A, #'3'
+	MOV A, 34H
+	ADD A, #'0'
 	ACALL sendCharacter	; Imprime o caractere '3'
+	ACALL delay
 	MOV A, #' '
  	ACALL sendCharacter	; Imprime o caractere ' '
 	mov A, #07h
  	ACALL posicionaCursor ; Posiciona o cursor na nona linha da tela
-	MOV A, #'2'
+	MOV A, 35H
+	ADD A, #'0'
 	ACALL sendCharacter	; Imprime o caractere ' '
+	ACALL delay
 	MOV A, #' '
  	ACALL sendCharacter	; Imprime o caractere ' '
 	mov A, #07h
  	ACALL posicionaCursor ; Posiciona o cursor na nona linha da tela
-	MOV A, #'4'
+	MOV A, 36H
+	ADD A, #'0'
 	ACALL sendCharacter	; Imprime o caractere ' '
+	ACALL delay
 	MOV A, #' '
  	ACALL sendCharacter	; Imprime o caractere ' '
 	mov A, #07h
  	ACALL posicionaCursor ; Posiciona o cursor na nona linha da tela
-	MOV A, #'3'
+	MOV A, 37H
+	ADD A, #'0'
 	ACALL sendCharacter	; Imprime o caractere ' '
+	ACALL delay
 	MOV A, #' '
  	ACALL sendCharacter	; Imprime o caractere ' '
 	mov A, #07h
@@ -348,18 +393,143 @@ JOGO:
 	ACALL sendCharacter	; Imprime o caractere ' '
 	MOV A, #' '
  	ACALL sendCharacter	; Imprime o caractere ' '
+    MOV R6, #31H
+    SJMP ROTINA
+
+ERRO:
+    MOV A, #00h
+    ACALL posicionaCursor ; Posiciona o cursor no início da tela
+    MOV A, #'E'
+    ACALL sendCharacter ; Imprime o caractere 'S'
+    MOV A, #'R'
+    ACALL sendCharacter    ; Imprime o caractere 'E'
+    MOV A, #'R'
+    ACALL sendCharacter ; Imprime o caractere 'Q'
+    MOV A, #'A'
+    ACALL sendCharacter ; Imprime o caractere 'U'
+    MOV A, #'D'
+	ACALL sendCharacter        ; Imprime o caractere 'E'
+   	MOV A, #'A'
+    ACALL sendCharacter    ; Imprime o caractere 'N'
+	MOV A, #' '
+	ACALL sendCharacter ; Imprime o caractere 'C'
+   	MOV A, #' '
+   	ACALL sendCharacter    ; Imprime o caractere 'I'
+   	MOV A, #' '
+   	ACALL sendCharacter ; Imprime o caractere 'A'
+   	MOV A, #' '
+   	ACALL sendCharacter ; Imprime o caractere ' '
+   	MOV A, #' '
+   	ACALL sendCharacter ; Imprime o caractere ' '
+   	MOV A, #' '
+   	ACALL sendCharacter ; Imprime o caractere ' '
+   	MOV A, #' '
+   	ACALL sendCharacter ; Imprime o caractere ' '
+   	MOV A, #' '
+   	ACALL sendCharacter ; Imprime o caractere ' '
+   	MOV A, #' '
+   	ACALL sendCharacter ; Imprime o caractere ' '
+   	MOV A, #' '
+   	ACALL sendCharacter ; Imprime o caractere ' '
+
+    INC R6
+    INC R1                  ; Próxima posição de memória
+    LJMP delay_tecla
 
 ROTINA:
+    MOV A, #40H
+    ACALL posicionaCursor   ; Posiciona na segunda linha
+    MOV A, #'D'
+    ACALL sendCharacter
+    MOV A, #'I'
+    ACALL sendCharacter
+    MOV A, #'G'
+    ACALL sendCharacter
+    MOV A, #' '
+    ACALL sendCharacter
+    MOV A, R3
+    ADD A, #'0'             ; Converte posição para ASCII
+    ACALL sendCharacter
+    MOV A, #' '
+   	ACALL sendCharacter ; Imprime o caractere ' '
+    MOV A, #' '
+   	ACALL sendCharacter ; Imprime o caractere ' '
+    MOV A, #' '
+   	ACALL sendCharacter ; Imprime o caractere ' '
+    MOV A, #' '
+   	ACALL sendCharacter ; Imprime o caractere ' '
+    MOV A, #' '
+   	ACALL sendCharacter ; Imprime o caractere ' '
+    MOV A, #'V'
+   	ACALL sendCharacter ; Imprime o caractere ' '
+    MOV A, #'I'
+   	ACALL sendCharacter ; Imprime o caractere ' '
+    MOV A, #'D'
+   	ACALL sendCharacter ; Imprime o caractere ' '
+    MOV A, #'A'
+   	ACALL sendCharacter ; Imprime o caractere ' '
+    MOV A, #' '
+   	ACALL sendCharacter ; Imprime o caractere ' '
+    MOV A, R5
+    ADD A , #'0'
+   	ACALL sendCharacter ; Imprime o caractere ' '
     ACALL leituraTeclado ; Lê o valor do teclado
     JNB F0, ROTINA ; Agora convertemos R0 (valor numérico da tecla) para caractere ASCII
     MOV A, R0            ; Converte número para caractere ASCII ('0' = 30h)
     ACALL escreveLCD    ; Supondo que essa função imprime 1 caractere no LCD
+    MOV A , #00h
+
 
     ; --- Armazena o valor da tecla na memória ---
     MOV A, R0               ; Recupera o valor original (0-15)
     MOV @R1, A              ; Armazena no endereço apontado por R1
-    INC R1                  ; Próxima posição de memória
+    MOV B, R6
+    CJNE A, B, NOT_EQUAL  ; Salto para um rótulo próximo
+    ; Se igual, continua
+    SJMP CONTINUA
+NOT_EQUAL:
+    LJMP ERRO             ; Salto longo para o rótulo distante
+CONTINUA:
 
+    MOV A, #00h
+    ACALL posicionaCursor ; Posiciona o cursor no início da tela
+    MOV A, #'A'
+    ACALL sendCharacter ; Imprime o caractere 'S'
+    MOV A, #'C'
+    ACALL sendCharacter    ; Imprime o caractere 'E'
+    MOV A, #'E'
+    ACALL sendCharacter ; Imprime o caractere 'Q'
+    MOV A, #'R'
+    ACALL sendCharacter ; Imprime o caractere 'U'
+    MOV A, #'T'
+	ACALL sendCharacter        ; Imprime o caractere 'E'
+   	MOV A, #'O'
+    ACALL sendCharacter    ; Imprime o caractere 'N'
+	MOV A, #' '
+	ACALL sendCharacter ; Imprime o caractere 'C'
+   	MOV A, #' '
+   	ACALL sendCharacter    ; Imprime o caractere 'I'
+   	MOV A, #' '
+   	ACALL sendCharacter ; Imprime o caractere 'A'
+   	MOV A, #' '
+   	ACALL sendCharacter ; Imprime o caractere ' '
+   	MOV A, #' '
+   	ACALL sendCharacter ; Imprime o caractere ' '
+   	MOV A, #' '
+   	ACALL sendCharacter ; Imprime o caractere ' '
+   	MOV A, #' '
+   	ACALL sendCharacter ; Imprime o caractere ' '
+   	MOV A, #' '
+   	ACALL sendCharacter ; Imprime o caractere ' '
+   	MOV A, #' '
+   	ACALL sendCharacter ; Imprime o caractere ' '
+   	MOV A, #' '
+   	ACALL sendCharacter ; Imprime o caractere ' '
+
+    INC R6
+    INC R1                  ; Próxima posição de memória
+    INC SCORE ; Incrementa a variável de score
+    INC 38
     ; --- Delay para visualização ---
 delay_tecla:
     MOV R2, #5       ; Contador externo (ajuste o valor para mudar o tempo)
@@ -369,8 +539,13 @@ delay_loop:
     DJNZ R2, delay_loop
     MOV R4, #7; Define o número de dígitos a serem comparados como 7
     CLR F0                  ; Reseta a flag de tecla pressionada
-    DJNZ R3, ROTINA         ; Repete para próxima tecla
-
+    DEC R3                  ; Decrement R3
+    MOV A, R3               ; Check if R3 is zero
+    CJNE A, #0, CONT_ROTINA ; If not zero, continue loop
+    SJMP AFTER_ROTINA_LOOP  ; Exit loop if R3 is zero
+CONT_ROTINA:
+    LJMP ROTINA             ; Long jump back to ROTINA
+AFTER_ROTINA_LOOP:         ; Repete para próxima tecla
     MOV R1, #41H; Define o endereço de memória para armazenar a sequência digitada
     MOV R0, #31H;  Define o endereço de memória para armazenar a sequência correta
 
@@ -384,6 +559,7 @@ COMPARACAO:
     INC 38
     DJNZ R4, COMPARACAO ; Decrementa o contador de dígitos e repete a comparação se necessário
     SJMP CORRETO; Se a sequência estiver correta, pula para CORRETO
+
 
 CORRETO:
     MOV P1, #0F0H ; Liga o LED verde
@@ -504,6 +680,7 @@ DIFERENTE:
 
 
 RESET:
+    MOV 38H, #00h
 	MOV R1, #41H ; Define o endereço de memória para armazenar a sequência digitada
 	MOV R3, #7 ; Define o número de dígitos da sequência como 7
 	LJMP JOGO ; Reinicia o processo de entrada da sequência
@@ -563,6 +740,18 @@ FIM:
     ACALL exibeScore
 	sjmp $ ; Finaliza a execução do programa
 
+; --- Gerador de Números Aleatórios (1-9) ---
+GERA_ALEATORIO:
+    INC R7
+    MOV A, TH0         ; Usa o Timer High (mais variável que TL0)
+    ADD A, R7          ; Adiciona valor dinâmico de R7
+    ADD A, 38H         ; Adiciona o valor do SCORE (endereço 38H)
+    MOV B, #9          ; Divisor para faixa 1-9
+    DIV AB             ; A/B: quociente em A, resto em B
+    MOV A, B           ; Usa o resto da divisão (0-8)
+    ADD A, #1          ; Ajusta para 1-9
+    INC R7             ; Incrementa R7 para próxima aleatoriedade
+    RET
 
 leituraTeclado:
  	MOV R0, #01	; Inicializa o registrador R0 com 0
@@ -622,7 +811,7 @@ row0:
 
 
 escreveLCD:
-    MOV A, #08h
+    MOV A, #0Ah
     ACALL posicionaCursor
     MOV A, R0
     ADD A, #'0'
@@ -814,6 +1003,6 @@ clearDisplay:
  	RET ; Retorna da sub-rotina
 
 delay:
- 	MOV R7, #15 ; Define o valor inicial do registrador R7 como 15
+ 	MOV R7, #255 ; Define o valor inicial do registrador R7 como 15
  	DJNZ R7, $ ; Decrementa o registrador R7 e repete a instrução enquanto R7 for diferente de zero
  	RET ; Retorna da sub-rotina
