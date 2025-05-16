@@ -394,6 +394,41 @@ JOGO:
 	MOV A, #' '
  	ACALL sendCharacter	; Imprime o caractere ' '
     MOV R6, #31H
+    MOV A, #40H
+    ACALL posicionaCursor   ; Posiciona na segunda linha
+    MOV A, #' '
+    ACALL sendCharacter
+    MOV A, #' '
+    ACALL sendCharacter
+    MOV A, #' '
+    ACALL sendCharacter
+    MOV A, #' '
+    ACALL sendCharacter
+    MOV A, #' '            ; Converte posição para ASCII
+    ACALL sendCharacter
+    MOV A, #' '
+   	ACALL sendCharacter ; Imprime o caractere ' '
+    MOV A, #' '
+   	ACALL sendCharacter ; Imprime o caractere ' '
+    MOV A, #' '
+   	ACALL sendCharacter ; Imprime o caractere ' '
+    MOV A, #' '
+   	ACALL sendCharacter ; Imprime o caractere ' '
+    MOV A, #' '
+   	ACALL sendCharacter ; Imprime o caractere ' '
+    MOV A, #'V'
+   	ACALL sendCharacter ; Imprime o caractere ' '
+    MOV A, #'I'
+   	ACALL sendCharacter ; Imprime o caractere ' '
+    MOV A, #'D'
+   	ACALL sendCharacter ; Imprime o caractere ' '
+    MOV A, #'A'
+   	ACALL sendCharacter ; Imprime o caractere ' '
+    MOV A, #' '
+   	ACALL sendCharacter ; Imprime o caractere ' '
+    MOV A, R5
+    ADD A , #'0'
+   	ACALL sendCharacter ; Imprime o caractere ' '
     SJMP ROTINA
 
 ERRO:
@@ -450,29 +485,7 @@ ROTINA:
     MOV A, R3
     ADD A, #'0'             ; Converte posição para ASCII
     ACALL sendCharacter
-    MOV A, #' '
-   	ACALL sendCharacter ; Imprime o caractere ' '
-    MOV A, #' '
-   	ACALL sendCharacter ; Imprime o caractere ' '
-    MOV A, #' '
-   	ACALL sendCharacter ; Imprime o caractere ' '
-    MOV A, #' '
-   	ACALL sendCharacter ; Imprime o caractere ' '
-    MOV A, #' '
-   	ACALL sendCharacter ; Imprime o caractere ' '
-    MOV A, #'V'
-   	ACALL sendCharacter ; Imprime o caractere ' '
-    MOV A, #'I'
-   	ACALL sendCharacter ; Imprime o caractere ' '
-    MOV A, #'D'
-   	ACALL sendCharacter ; Imprime o caractere ' '
-    MOV A, #'A'
-   	ACALL sendCharacter ; Imprime o caractere ' '
-    MOV A, #' '
-   	ACALL sendCharacter ; Imprime o caractere ' '
-    MOV A, R5
-    ADD A , #'0'
-   	ACALL sendCharacter ; Imprime o caractere ' '
+
     ACALL leituraTeclado ; Lê o valor do teclado
     JNB F0, ROTINA ; Agora convertemos R0 (valor numérico da tecla) para caractere ASCII
     MOV A, R0            ; Converte número para caractere ASCII ('0' = 30h)
@@ -484,6 +497,8 @@ ROTINA:
     MOV A, R0               ; Recupera o valor original (0-15)
     MOV @R1, A              ; Armazena no endereço apontado por R1
     MOV B, R6
+    MOV R0, B
+    MOV B, @R0
     CJNE A, B, NOT_EQUAL  ; Salto para um rótulo próximo
     ; Se igual, continua
     SJMP CONTINUA
@@ -555,8 +570,6 @@ COMPARACAO:
     CJNE A,B , DIFERENTE ; Compara os valores em A e B. Se forem diferentes, pula para DIFERENTE
     INC R1 ; Incrementa o registrador R1 para apontar para o próximo dígito da sequência digitada
     INC R0; Incrementa o registrador R0 para apontar para o próximo dígito da sequência correta
-    INC SCORE ; Incrementa a variável de score
-    INC 38
     DJNZ R4, COMPARACAO ; Decrementa o contador de dígitos e repete a comparação se necessário
     SJMP CORRETO; Se a sequência estiver correta, pula para CORRETO
 
@@ -600,17 +613,17 @@ CORRETO:
 	ACALL sendCharacter ; Imprime o caractere 'C'
 	MOV A, #'O'
 	ACALL sendCharacter ; Imprime o caractere 'O'
-	MOV A, #'R'
+	MOV A, #'M'
 	ACALL sendCharacter ; Imprime o caractere 'R'
-	MOV A, #'R'
+	MOV A, #'P'
 	ACALL sendCharacter ; Imprime o caractere 'R'
-	MOV A, #'E'
+	MOV A, #'L'
 	ACALL sendCharacter ; Imprime o caractere 'E'
-	MOV A, #'T'
+	MOV A, #'E'
 	ACALL sendCharacter ; Imprime o caractere 'T'
-	MOV A, #'A'
+	MOV A, #'T'
 	ACALL sendCharacter ; Imprime o caractere 'A'
-	MOV A, #' '
+	MOV A, #'A'
 	ACALL sendCharacter ; Imprime o caractere ' '
 	MOV A, #' '
 	ACALL sendCharacter ; Imprime o caractere ' '
@@ -895,9 +908,6 @@ exibeScore:
      MOV A, SCORE ; Carrega o valor do score
 
      ADD A, #'0' ; Converte o dígito das dezenas para ASCII
-     ACALL sendCharacter
-
-     ADD A, #'0' ; Converte o dígito das unidades para ASCII
      ACALL sendCharacter
      RET
 
