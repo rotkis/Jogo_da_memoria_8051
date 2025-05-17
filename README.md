@@ -42,6 +42,7 @@ O código assembly é organizado nas seguintes rotinas principais:
 * **`retornaCursor`:** Sub-rotina para retornar o cursor à posição inicial do LCD.
 * **`clearDisplay`:** Sub-rotina para limpar o display LCD.
 * **`delay`, `delay_tecla`:** Sub-rotinas para gerar pequenos atrasos de tempo.
+![Fluxograma](https://github.com/user-attachments/assets/0ef99327-335f-49ab-b10d-ad29f7af3ec1)
 
 ## Notas
 
